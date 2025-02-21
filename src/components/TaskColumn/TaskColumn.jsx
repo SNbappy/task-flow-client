@@ -1,59 +1,31 @@
-import { useState } from "react";
-import { Droppable, Draggable } from "react-beautiful-dnd";
+import { useDrop } from "react-dnd";
 import TaskCard from "../TaskCard/TaskCard";
 
-const TaskColumn = ({ title, tasks = [], id, addTask }) => {
-    const [newTask, setNewTask] = useState("");
-
-    const handleAddTask = () => {
-        if (newTask.trim() === "") return;
-        addTask(id, newTask);
-        setNewTask(""); // Clear input after adding
-    };
+const TaskColumn = ({ title, tasks, onDropTask, children }) => {
+    const [{ isOver }, drop] = useDrop(() => ({
+        accept: "TASK",
+        drop: (item) => onDropTask(item.id, title.toLowerCase().replace(/\s/g, "")),
+        collect: (monitor) => ({
+            isOver: monitor.isOver(),
+        }),
+    }));
 
     return (
-        <div className="p-4 bg-white rounded-lg shadow-md w-80">
-            <h2 className="mb-3 text-lg font-semibold">{title}</h2>
+        <div
+            ref={drop}
+            className={`p-4 border rounded-lg w-80 shadow-lg ${isOver ? "bg-gray-200" : "bg-white"
+                }`}
+        >
+            <h2 className="mb-3 text-xl font-semibold text-gray-700">{title}</h2>
 
-            {/* Task Input Field */}
-            <div className="flex mb-3">
-                <input
-                    type="text"
-                    value={newTask}
-                    onChange={(e) => setNewTask(e.target.value)}
-                    placeholder="Enter new task..."
-                    className="w-full p-2 border rounded"
-                />
-                <button
-                    onClick={handleAddTask}
-                    className="px-3 py-2 ml-2 text-white bg-blue-500 rounded"
-                >
-                    Add
-                </button>
+            {/* Show input for adding tasks only in "To Do" column */}
+            {title === "To Do" && <div className="mb-2">{children}</div>}
+
+            <div className="space-y-3">
+                {tasks.map((task) => (
+                    <TaskCard key={task._id} task={task} />
+                ))}
             </div>
-
-            {/* Draggable Task List */}
-            <Droppable droppableId={id} isDropDisabled={false}>
-                {(provided) => (
-                    <div ref={provided.innerRef} {...provided.droppableProps}>
-                        {tasks.map((task, index) => (
-                            <Draggable key={task.id} draggableId={task.id} index={index}>
-                                {(provided) => (
-                                    <div
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        className="p-2 my-2 bg-gray-100 rounded-lg"
-                                    >
-                                        <TaskCard task={task} />
-                                    </div>
-                                )}
-                            </Draggable>
-                        ))}
-                        {provided.placeholder}
-                    </div>
-                )}
-            </Droppable>
         </div>
     );
 };

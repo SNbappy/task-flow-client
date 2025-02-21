@@ -1,79 +1,81 @@
-import { useState, useEffect } from "react";
-import { DragDropContext } from "react-beautiful-dnd";
-import TaskColumn from "../TaskColumn/TaskColumn";
-
-const initialTasks = {
-    "to-do": [],
-    "in-progress": [],
-    "done": []
-};
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useAuth } from "../../context/AuthContext"; // Import Auth context
 
 const TaskBoard = () => {
-    const [tasks, setTasks] = useState(initialTasks);
+    const { user, loading } = useAuth(); // Get user authentication state
+    const [tasks, setTasks] = useState([]);
+    const [taskTitle, setTaskTitle] = useState("");
 
-    // Fetch tasks from backend (MongoDB via Express API)
+    // Fetch tasks when the user is authenticated
     useEffect(() => {
-        const fetchTasks = async () => {
-            try {
-                const response = await fetch("http://localhost:5000/tasks");
-                const data = await response.json();
-
-                // Organize tasks into categories
-                const organizedTasks = {
-                    "to-do": data.filter(task => task.category === "To-Do"),
-                    "in-progress": data.filter(task => task.category === "In Progress"),
-                    "done": data.filter(task => task.category === "Done")
-                };
-
-                setTasks(organizedTasks);
-            } catch (error) {
-                console.error("Error fetching tasks:", error);
-            }
-        };
-
-        fetchTasks();
-    }, []);
-
-    // Handle drag-and-drop functionality
-    const onDragEnd = async (result) => {
-        const { source, destination } = result;
-        if (!destination) return;
-
-        // Copy tasks
-        const updatedTasks = { ...tasks };
-        const draggedTask = updatedTasks[source.droppableId][source.index];
-
-        // Remove from the old category
-        updatedTasks[source.droppableId].splice(source.index, 1);
-
-        // Add to the new category
-        updatedTasks[destination.droppableId].splice(destination.index, 0, {
-            ...draggedTask,
-            category: destination.droppableId
-        });
-
-        setTasks(updatedTasks);
-
-        // Update backend with new category
-        try {
-            await fetch(`http://localhost:5000/tasks/${draggedTask._id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ category: destination.droppableId })
-            });
-        } catch (error) {
-            console.error("Error updating task:", error);
+        if (loading) return; // Wait until authentication state is determined
+        if (!user) {
+            console.error("User is not logged in!");
+            return;
         }
+        fetchTasks();
+    }, [user, loading]);
+
+    // Function to fetch tasks from backend
+    const fetchTasks = () => {
+        axios.get(`http://localhost:5000/tasks?userId=${user.uid}`)
+            .then(res => setTasks(res.data))
+            .catch(err => console.error("Error fetching tasks:", err));
+    };
+
+    // Function to add a new task
+    const addTask = () => {
+        if (!taskTitle.trim() || !user) return;
+
+        const newTask = { title: taskTitle, userId: user.uid };
+
+        axios.post("http://localhost:5000/tasks", newTask)
+            .then(() => {
+                setTaskTitle(""); // Clear input
+                fetchTasks(); // Fetch updated tasks from backend
+            })
+            .catch(err => console.error("Error adding task:", err));
     };
 
     return (
-        <DragDropContext onDragEnd={onDragEnd}>
-            <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-3">
-                <TaskColumn title="To-Do" tasks={tasks["to-do"]} id="to-do" />
-                <TaskColumn title="In Progress" tasks={tasks["in-progress"]} id="in-progress" />
-                <TaskColumn title="Done" tasks={tasks["done"]} id="done" />
-            </div>
-        </DragDropContext>
+        <div className="max-w-md p-4 mx-auto mt-4 bg-white rounded shadow">
+            <h2 className="text-xl font-bold">Task Board</h2>
+            {loading ? (
+                <p>Loading...</p>
+            ) : user ? (
+                <>
+                    <div className="flex gap-2 mt-2">
+                        <input
+                            type="text"
+                            value={taskTitle}
+                            onChange={(e) => setTaskTitle(e.target.value)}
+                            placeholder="Enter task..."
+                            className="flex-1 p-2 border rounded"
+                        />
+                        <button
+                            onClick={addTask}
+                            className="px-4 py-2 text-white bg-green-500 rounded">
+                            Add Task
+                        </button>
+                    </div>
+
+                    <ul className="mt-4">
+                        {tasks.length > 0 ? (
+                            tasks.map((task) => (
+                                <li key={task._id} className="p-2 mt-1 bg-gray-200 rounded">
+                                    {task.title}
+                                </li>
+                            ))
+                        ) : (
+                            <p className="text-gray-500">No tasks found.</p>
+                        )}
+                    </ul>
+                </>
+            ) : (
+                <p className="text-red-500">User is not logged in! Please log in.</p>
+            )}
+        </div>
     );
 };
 

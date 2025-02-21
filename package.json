@@ -10,15 +10,22 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "axios": "^1.7.9",
     "firebase": "^11.3.1",
+    "framer-motion": "^12.4.7",
     "localforage": "^1.10.0",
+    "lucide-react": "^0.475.0",
     "match-sorter": "^8.0.0",
     "react": "^19.0.0",
     "react-beautiful-dnd": "^13.1.1",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.2.0",
     "sort-by": "^1.2.0",
-    "tailwindcss-rn": "^1.0.2"
+    "tailwindcss-rn": "^1.0.2",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
