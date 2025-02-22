@@ -2,14 +2,14 @@
 import { useContext } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext"; // Use useAuth instead of direct import
-import Navbar from "../../components/Navbar/Navbar";
+// import Navbar from "../../components/Navbar/Navbar";
 
 const Home = () => {
     const { user, signInWithGoogle } = useAuth();
 
     return (
         <div className="min-h-screen text-gray-900 bg-gray-100">
-            <Navbar />
+            {/* <Navbar /> */}
             <div className="flex flex-col items-center justify-center h-[80vh] text-center px-4">
                 <h1 className="mb-4 text-4xl font-bold text-gray-800">
                     Welcome to Task Flow 🚀

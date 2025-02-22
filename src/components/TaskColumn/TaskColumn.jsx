@@ -1,32 +1,29 @@
-import { useDrop } from "react-dnd";
-import TaskCard from "../TaskCard/TaskCard";
+import { Droppable } from "@hello-pangea/dnd";
+import TaskItem from "../TaskItem/TaskItem";
 
-const TaskColumn = ({ title, tasks, onDropTask, children }) => {
-    const [{ isOver }, drop] = useDrop(() => ({
-        accept: "TASK",
-        drop: (item) => onDropTask(item.id, title.toLowerCase().replace(/\s/g, "")),
-        collect: (monitor) => ({
-            isOver: monitor.isOver(),
-        }),
-    }));
-
+const TaskColumn = ({ status, tasks }) => {
     return (
-        <div
-            ref={drop}
-            className={`p-4 border rounded-lg w-80 shadow-lg ${isOver ? "bg-gray-200" : "bg-white"
-                }`}
-        >
-            <h2 className="mb-3 text-xl font-semibold text-gray-700">{title}</h2>
+        <Droppable droppableId={status}>
+            {(provided) => (
+                <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className="bg-white shadow-md rounded p-4 min-h-[300px]"
+                >
+                    <h2 className="mb-4 text-lg font-semibold text-center uppercase">
+                        {status.replace("-", " ")}
+                    </h2>
 
-            {/* Show input for adding tasks only in "To Do" column */}
-            {title === "To Do" && <div className="mb-2">{children}</div>}
+                    {tasks
+                        .filter(task => task.status === status)
+                        .map((task, index) => (
+                            <TaskItem key={task._id} task={task} index={index} />
+                        ))}
 
-            <div className="space-y-3">
-                {tasks.map((task) => (
-                    <TaskCard key={task._id} task={task} />
-                ))}
-            </div>
-        </div>
+                    {provided.placeholder}
+                </div>
+            )}
+        </Droppable>
     );
 };
 
