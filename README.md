@@ -53,33 +53,30 @@ A sleek and intuitive task management application that allows users to seamlessl
 
 ## 🚀 Installation & Setup  
 
-### **1️⃣ Clone the Repository**
-git clone [Your Repo Link]
-cd task-management-app
+### **1️⃣ Clone the Repository**  
+- git clone [Your Repo Link]
+- cd task-management-app
 
-
-### **1️⃣ Backend Setup**  
-cd backend
-npm install
-npm start
-🔹 Create a .env file and add the MongoDB connection string.
+### **2️⃣ Backend Setup**
+- cd backend
+- npm install
+- npm start
+- 🔹 Create a .env file and add the MongoDB connection string.
 
 ### **3️⃣ Frontend Setup**
-sh
-Copy
-Edit
-cd ../frontend
-npm install
-npm run dev
-🔹 Configure Firebase authentication in the .env file.
+- cd ../frontend
+- npm install
+- npm run dev
+- 🔹 Configure Firebase authentication in the .env file.
 
-📡 API Endpoints
+### **📡 API Endpoints**
 Method	Endpoint	Description
 POST	/tasks	Add a new task
 GET	/tasks	Retrieve all tasks for the user
 PUT	/tasks/:id	Update task details
 DELETE	/tasks/:id	Delete a task
-🎮 Usage
+
+### **🎮 Usage**
 1️⃣ Sign in with Google to access the application.
 2️⃣ Create a task by adding a title and an optional description.
 3️⃣ Drag & Drop tasks between categories (To-Do, In Progress, Done).
@@ -87,31 +84,14 @@ DELETE	/tasks/:id	Delete a task
 5️⃣ Tasks persist even after a page refresh.
 
 
-🌟 Bonus Features
+### **🌟 Bonus Features**
 ⭐ Dark Mode – Toggle between light and dark themes.
 ⭐ Task Due Dates – Color indicators for overdue tasks.
 ⭐ Activity Log – Track task movements and changes.
 
-👨‍💻 Contributors
+### **👨‍💻 Contributors**
 Md. Sabbir Hossain Bappy – Full-Stack Developer
 📩 Feel free to contribute or report issues!
 
 📜 License
 This project is licensed under the MIT License.
-
-yaml
-Copy
-Edit
-
-### **4️⃣ Save the File**  
-After pasting the content, save the `README.md` file.  
-
-### **5️⃣ Preview the README (Optional)**  
-If you're using VS Code, you can preview the markdown file:  
-- Right-click `README.md` and select **"Open Preview"**  
-
-Or, if you're using GitHub, commit and push the file, then check how it looks on your repository page.  
-
----
-
-### **That's It! 🎉**  
