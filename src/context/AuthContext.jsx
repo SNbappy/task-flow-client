@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
         try {
             await signOut(auth);
             setUser(null); // Explicitly update state
-            console.log("User logged out successfully"); // Debugging log
+            // console.log("User logged out successfully"); // Debugging log
         } catch (error) {
             console.error("Logout Error:", error.message);
         }

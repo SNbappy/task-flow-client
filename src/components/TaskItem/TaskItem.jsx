@@ -28,7 +28,7 @@ const TaskItem = ({ task, index, onUpdate }) => {
                 status: task.status, 
             });
 
-            console.log("Updated task response:", response.data);
+            // console.log("Updated task response:", response.data);
             onUpdate(task._id, { ...task, ...editedTask }); 
             setIsEditing(false);
         } catch (error) {

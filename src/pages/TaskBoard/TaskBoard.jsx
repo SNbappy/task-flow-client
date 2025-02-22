@@ -17,7 +17,7 @@ const TaskBoard = () => {
     const fetchTasks = async (uid) => {
         try {
             const res = await axios.get(`http://localhost:5000/tasks/${uid}`);
-            console.log("Fetched tasks:", res.data);
+            // console.log("Fetched tasks:", res.data);
 
             const filteredTasks = res.data.filter(task => task.title !== null);
             setTasks(filteredTasks);
