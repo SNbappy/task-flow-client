@@ -1,8 +1,5 @@
-// src/pages/Home.jsx
-import { useContext } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext"; // Use useAuth instead of direct import
-// import Navbar from "../../components/Navbar/Navbar";
+import { useAuth } from "../../context/AuthContext";
 
 const Home = () => {
     const { user, signInWithGoogle } = useAuth();
