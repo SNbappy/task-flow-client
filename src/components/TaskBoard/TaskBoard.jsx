@@ -1,80 +1,111 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { useAuth } from "../../context/AuthContext"; // Import Auth context
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { useAuth } from "../../context/AuthContext";
+import { v4 as uuidv4 } from "uuid";
 
 const TaskBoard = () => {
-    const { user, loading } = useAuth(); // Get user authentication state
+    const { user } = useAuth();
     const [tasks, setTasks] = useState([]);
-    const [taskTitle, setTaskTitle] = useState("");
+    const [newTask, setNewTask] = useState("");
 
-    // Fetch tasks when the user is authenticated
     useEffect(() => {
-        if (loading) return; // Wait until authentication state is determined
-        if (!user) {
-            console.error("User is not logged in!");
-            return;
-        }
-        fetchTasks();
-    }, [user, loading]);
+        if (user) fetchTasks(user.uid);
+    }, [user]);
 
-    // Function to fetch tasks from backend
-    const fetchTasks = () => {
-        axios.get(`http://localhost:5000/tasks?userId=${user.uid}`)
-            .then(res => setTasks(res.data))
-            .catch(err => console.error("Error fetching tasks:", err));
+    const fetchTasks = async (uid) => {
+        const res = await axios.get(`http://localhost:5000/tasks/${uid}`);
+        setTasks(res.data);
     };
 
-    // Function to add a new task
-    const addTask = () => {
-        if (!taskTitle.trim() || !user) return;
+    const handleDragEnd = async (result) => {
+        if (!result.destination) return;
 
-        const newTask = { title: taskTitle, userId: user.uid };
+        const updatedTasks = [...tasks];
+        const movedTaskIndex = updatedTasks.findIndex(task => task._id === result.draggableId);
 
-        axios.post("http://localhost:5000/tasks", newTask)
-            .then(() => {
-                setTaskTitle(""); // Clear input
-                fetchTasks(); // Fetch updated tasks from backend
-            })
-            .catch(err => console.error("Error adding task:", err));
+        if (movedTaskIndex !== -1) {
+            updatedTasks[movedTaskIndex].status = result.destination.droppableId;
+            setTasks(updatedTasks);
+            try {
+                await axios.put(`http://localhost:5000/tasks/${result.draggableId}`, {
+                    status: result.destination.droppableId
+                });
+            } catch (error) {
+                console.error("Failed to update task:", error);
+                fetchTasks(user.uid);
+            }
+        }
+    };
+
+    const addTask = async () => {
+        if (!newTask.trim()) return;
+
+        const task = {
+            _id: uuidv4(), // Temporary ID until saved in DB
+            title: newTask,
+            status: "todo",
+            userId: user.uid
+        };
+
+        setTasks([...tasks, task]);
+        setNewTask("");
+
+        try {
+            await axios.post("http://localhost:5000/tasks", task);
+            fetchTasks(user.uid);
+        } catch (error) {
+            console.error("Failed to add task:", error);
+        }
     };
 
     return (
-        <div className="max-w-md p-4 mx-auto mt-4 bg-white rounded shadow">
-            <h2 className="text-xl font-bold">Task Board</h2>
-            {loading ? (
-                <p>Loading...</p>
-            ) : user ? (
-                <>
-                    <div className="flex gap-2 mt-2">
-                        <input
-                            type="text"
-                            value={taskTitle}
-                            onChange={(e) => setTaskTitle(e.target.value)}
-                            placeholder="Enter task..."
-                            className="flex-1 p-2 border rounded"
-                        />
-                        <button
-                            onClick={addTask}
-                            className="px-4 py-2 text-white bg-green-500 rounded">
-                            Add Task
-                        </button>
-                    </div>
+        <div className="min-h-screen p-6 bg-gray-100">
+            <h1 className="mb-6 text-2xl font-bold text-center">Task Board</h1>
 
-                    <ul className="mt-4">
-                        {tasks.length > 0 ? (
-                            tasks.map((task) => (
-                                <li key={task._id} className="p-2 mt-1 bg-gray-200 rounded">
-                                    {task.title}
-                                </li>
-                            ))
-                        ) : (
-                            <p className="text-gray-500">No tasks found.</p>
-                        )}
-                    </ul>
-                </>
-            ) : (
-                <p className="text-red-500">User is not logged in! Please log in.</p>
-            )}
+            <div className="flex gap-2 mb-4">
+                <input
+                    type="text"
+                    value={newTask}
+                    onChange={(e) => setNewTask(e.target.value)}
+                    placeholder="Enter a new task"
+                    className="w-full p-2 border rounded"
+                />
+                <button onClick={addTask} className="px-4 py-2 text-white bg-blue-500 rounded">Add Task</button>
+            </div>
+
+            <DragDropContext onDragEnd={handleDragEnd}>
+                <div className="grid grid-cols-3 gap-6">
+                    {["todo", "in-progress", "done"].map((status) => (
+                        <Droppable key={status} droppableId={status}>
+                            {(provided) => (
+                                <div
+                                    ref={provided.innerRef}
+                                    {...provided.droppableProps}
+                                    className="bg-white shadow-md rounded p-4 min-h-[300px]"
+                                >
+                                    <h2 className="mb-4 text-lg font-semibold text-center uppercase">{status.replace("-", " ")}</h2>
+                                    {tasks.filter(task => task.status === status).map((task, index) => (
+                                        <Draggable key={task._id} draggableId={task._id} index={index}>
+                                            {(provided) => (
+                                                <div
+                                                    ref={provided.innerRef}
+                                                    {...provided.draggableProps}
+                                                    {...provided.dragHandleProps}
+                                                    className="p-3 mb-2 bg-gray-200 rounded-md shadow cursor-pointer"
+                                                >
+                                                    {task.title}
+                                                </div>
+                                            )}
+                                        </Draggable>
+                                    ))}
+                                    {provided.placeholder}
+                                </div>
+                            )}
+                        </Droppable>
+                    ))}
+                </div>
+            </DragDropContext>
         </div>
     );
 };
