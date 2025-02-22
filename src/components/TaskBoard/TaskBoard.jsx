@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { DragDropContext } from "@hello-pangea/dnd";
+import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 import { useAuth } from "../../context/AuthContext";
-import TaskColumn from "../TaskColumn/TaskColumn";
-import TaskInput from "../TaskInput/TaskInput";
+import { v4 as uuidv4 } from "uuid";
+import TaskItem from "../TaskItem/TaskItem";
+import { TASK_STATUSES } from "../../utils/constants";
 
 const TaskBoard = () => {
     const { user } = useAuth();
     const [tasks, setTasks] = useState([]);
+    const [newTask, setNewTask] = useState("");
 
     useEffect(() => {
         if (user) fetchTasks(user.uid);
@@ -18,40 +20,113 @@ const TaskBoard = () => {
             const res = await axios.get(`http://localhost:5000/tasks/${uid}`);
             setTasks(res.data);
         } catch (error) {
-            console.error("Failed to fetch tasks:", error);
+            console.error("Error fetching tasks:", error);
         }
     };
 
-    const handleDragEnd = async (result) => {
-        if (!result.destination) return;
+    const onDragEnd = async (result) => {
+        const { source, destination } = result;
+        if (!destination) return; // If dropped outside, do nothing
 
-        const updatedTasks = [...tasks];
-        const movedTaskIndex = updatedTasks.findIndex(task => task._id === result.draggableId);
+        const draggedTask = tasks.find(task => task._id === result.draggableId);
+        if (!draggedTask) return;
 
-        if (movedTaskIndex !== -1) {
-            updatedTasks[movedTaskIndex].status = result.destination.droppableId;
+        // If dropped in the same list, just reorder
+        if (source.droppableId === destination.droppableId) {
+            const updatedTasks = [...tasks];
+            const [movedTask] = updatedTasks.splice(source.index, 1);
+            updatedTasks.splice(destination.index, 0, movedTask);
             setTasks(updatedTasks);
-            try {
-                await axios.put(`http://localhost:5000/tasks/${result.draggableId}`, {
-                    status: result.destination.droppableId
-                });
-            } catch (error) {
-                console.error("Failed to update task:", error);
-                fetchTasks(user.uid);
-            }
+            return;
         }
+
+        // Update the status when moved between lists
+        const updatedTask = { ...draggedTask, status: destination.droppableId };
+
+        try {
+            await axios.put(`http://localhost:5000/tasks/${draggedTask._id}`, { status: destination.droppableId });
+
+            // Update the state only after the request is successful
+            setTasks(prevTasks =>
+                prevTasks.map(task =>
+                    task._id === draggedTask._id ? updatedTask : task
+                )
+            );
+        } catch (error) {
+            console.error("Error updating task status:", error);
+        }
+    };
+
+
+    const addTask = async () => {
+        if (!newTask.trim() || !user) return;
+
+        const task = {
+            _id: uuidv4(),
+            title: newTask,
+            description: "",
+            status: TASK_STATUSES.TODO,
+            userId: user.uid,
+        };
+
+        try {
+            const res = await axios.post("http://localhost:5000/tasks", task);
+            setTasks([...tasks, res.data]); // Use response data to ensure correct task ID
+        } catch (error) {
+            console.error("Failed to add task:", error);
+        }
+
+        setNewTask("");
     };
 
     return (
         <div className="min-h-screen p-6 bg-gray-100">
             <h1 className="mb-6 text-2xl font-bold text-center">Task Board</h1>
 
-            <TaskInput setTasks={setTasks} user={user} />
+            {/* Add Task Input */}
+            <div className="flex gap-2 mb-4">
+                <input
+                    type="text"
+                    value={newTask}
+                    onChange={(e) => setNewTask(e.target.value)}
+                    placeholder="Enter a new task"
+                    className="w-full p-2 border rounded"
+                />
+                <button
+                    onClick={addTask}
+                    className="px-4 py-2 text-white bg-blue-500 rounded"
+                >
+                    Add Task
+                </button>
+            </div>
 
-            <DragDropContext onDragEnd={handleDragEnd}>
+            {/* Drag and Drop Task Board */}
+            <DragDropContext onDragEnd={onDragEnd}>
                 <div className="grid grid-cols-3 gap-6">
-                    {["todo", "in-progress", "done"].map(status => (
-                        <TaskColumn key={status} status={status} tasks={tasks} />
+                    {Object.values(TASK_STATUSES).map((status) => (
+                        <Droppable key={status} droppableId={status}>
+                            {(provided) => (
+                                <div
+                                    ref={provided.innerRef}
+                                    {...provided.droppableProps}
+                                    className="bg-white shadow-md rounded p-4 min-h-[300px]"
+                                >
+                                    <h2 className="mb-4 text-lg font-semibold text-center uppercase">
+                                        {status.replace("-", " ")}
+                                    </h2>
+                                    {tasks
+                                        .filter((task) => task.status === status)
+                                        .map((task, index) => (
+                                            <TaskItem
+                                                key={task._id}
+                                                task={task}
+                                                index={index}
+                                            />
+                                        ))}
+                                    {provided.placeholder}
+                                </div>
+                            )}
+                        </Droppable>
                     ))}
                 </div>
             </DragDropContext>
