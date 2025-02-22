@@ -4,10 +4,7 @@ import {
 import NotFoundPage from "../pages/NotFoundPage/NotFoundPage";
 import Main from "../Layout/MainLayout";
 import Home from "../pages/Home/Home";
-// import Login from "../pages/Auth/Login";
-// import Register from "../pages/Auth/Register";
 import TaskBoard from "../pages/TaskBoard/TaskBoard";
-// import TaskBoard from "../components/TaskBoard/TaskBoard";
 
 export const router = createBrowserRouter([
     {
@@ -17,7 +14,6 @@ export const router = createBrowserRouter([
         children: [
             { path: "/", element: <Home /> },
             { path: "/tasks", element: <TaskBoard /> },
-            // { path: "/tasks/:taskId", element: <TaskDetails /> },
         ],
     },
     {
