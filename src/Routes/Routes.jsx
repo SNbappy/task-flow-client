@@ -10,7 +10,7 @@ export const router = createBrowserRouter([
     {
         path: "/",
         element: <Main />,
-        errorElement: <NotFoundPage />,  // 404 Page
+        errorElement: <NotFoundPage />,
         children: [
             { path: "/", element: <Home /> },
             { path: "/tasks", element: <TaskBoard /> },
@@ -18,12 +18,10 @@ export const router = createBrowserRouter([
     },
     {
         path: "/dashboard",
-        // element: <PrivateRoute><Dashboard /></PrivateRoute>, // Protect Dashboard with Private Route
-        errorElement: <NotFoundPage />,  // 404 Page for dashboard
+        
+        errorElement: <NotFoundPage />,
         children: [
-            // { path: "/dashboard/profile", element: <UserProfile /> },
-            // { path: "/dashboard/manage-users", element: <ManageUsers /> },
         ],
     },
-    { path: "*", element: <NotFoundPage /> },  // Catch-all route
+    { path: "*", element: <NotFoundPage /> },
 ]);
