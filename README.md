@@ -57,14 +57,16 @@ A sleek and intuitive task management application that allows users to seamlessl
 ```sh
 git clone [Your Repo Link]
 cd task-management-app
-
-### **2️⃣ Backend Setup**
+2️⃣ Backend Setup
+sh
+Copy
+Edit
 cd backend
 npm install
 npm start
 🔹 Create a .env file and add the MongoDB connection string.
 
-### **3️⃣ Frontend Setup**
+3️⃣ Frontend Setup
 sh
 Copy
 Edit
@@ -100,20 +102,3 @@ DELETE	/tasks/:id	Delete a task
 
 📜 License
 This project is licensed under the MIT License.
-
-yaml
-Copy
-Edit
-
-### **4️⃣ Save the File**  
-After pasting the content, save the `README.md` file.  
-
-### **5️⃣ Preview the README (Optional)**  
-If you're using VS Code, you can preview the markdown file:  
-- Right-click `README.md` and select **"Open Preview"**  
-
-Or, if you're using GitHub, commit and push the file, then check how it looks on your repository page.  
-
----
-
-### **That's It! 🎉**  
