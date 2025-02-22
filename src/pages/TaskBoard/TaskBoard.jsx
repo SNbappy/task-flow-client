@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 import { useAuth } from "../../context/AuthContext";
-import TaskItem from "../TaskItem/TaskItem";
+import TaskItem from "../../components/TaskItem/TaskItem";
 import { TASK_STATUSES } from "../../utils/constants";
 
 const TaskBoard = () => {

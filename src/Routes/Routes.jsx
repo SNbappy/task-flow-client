@@ -6,13 +6,13 @@ import Main from "../Layout/MainLayout";
 import Home from "../pages/Home/Home";
 // import Login from "../pages/Auth/Login";
 // import Register from "../pages/Auth/Register";
-import Dashboard from "../pages/Dashboard/Dashboard";
-import TaskBoard from "../components/TaskBoard/TaskBoard";
+import TaskBoard from "../pages/TaskBoard/TaskBoard";
+// import TaskBoard from "../components/TaskBoard/TaskBoard";
 
 export const router = createBrowserRouter([
     {
         path: "/",
-        element: <Main />,  // Main layout for public pages
+        element: <Main />,
         errorElement: <NotFoundPage />,  // 404 Page
         children: [
             { path: "/", element: <Home /> },
