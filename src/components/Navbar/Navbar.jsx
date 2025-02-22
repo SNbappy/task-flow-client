@@ -9,7 +9,7 @@ const Navbar = () => {
             <div className="container flex items-center justify-between mx-auto">
                 {/* App Name / Logo */}
                 <Link to="/" className="text-2xl font-bold text-blue-600">
-                    TaskFlow 🚀
+                    TaskFlow
                 </Link>
 
                 {/* User Info & Authentication */}

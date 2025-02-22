@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 import { useAuth } from "../../context/AuthContext";
-import { v4 as uuidv4 } from "uuid";
 import TaskItem from "../TaskItem/TaskItem";
 import { TASK_STATUSES } from "../../utils/constants";
 
@@ -18,35 +17,25 @@ const TaskBoard = () => {
     const fetchTasks = async (uid) => {
         try {
             const res = await axios.get(`http://localhost:5000/tasks/${uid}`);
-            setTasks(res.data);
+            console.log("Fetched tasks:", res.data);
+
+            const filteredTasks = res.data.filter(task => task.title !== null);
+            setTasks(filteredTasks);
         } catch (error) {
             console.error("Error fetching tasks:", error);
         }
     };
 
-    const onDragEnd = async (result) => {
-        const { source, destination } = result;
-        if (!destination) return; // If dropped outside, do nothing
+    const handleTaskDrop = async (draggedTask, destination) => {
+        if (!destination) return;
 
-        const draggedTask = tasks.find(task => task._id === result.draggableId);
-        if (!draggedTask) return;
-
-        // If dropped in the same list, just reorder
-        if (source.droppableId === destination.droppableId) {
-            const updatedTasks = [...tasks];
-            const [movedTask] = updatedTasks.splice(source.index, 1);
-            updatedTasks.splice(destination.index, 0, movedTask);
-            setTasks(updatedTasks);
-            return;
-        }
-
-        // Update the status when moved between lists
-        const updatedTask = { ...draggedTask, status: destination.droppableId };
+        const updatedTask = {
+            ...draggedTask,
+            status: destination.droppableId
+        };
 
         try {
-            await axios.put(`http://localhost:5000/tasks/${draggedTask._id}`, { status: destination.droppableId });
-
-            // Update the state only after the request is successful
+            await axios.put(`http://localhost:5000/tasks/${draggedTask._id}`, updatedTask);
             setTasks(prevTasks =>
                 prevTasks.map(task =>
                     task._id === draggedTask._id ? updatedTask : task
@@ -57,33 +46,44 @@ const TaskBoard = () => {
         }
     };
 
+    const onDragEnd = async (result) => {
+        const { source, destination } = result;
+        if (!destination) return;
+
+        const draggedTask = tasks.find(task => task._id === result.draggableId);
+        if (!draggedTask) return;
+
+        if (source.droppableId === destination.droppableId) {
+            const updatedTasks = [...tasks];
+            const [movedTask] = updatedTasks.splice(source.index, 1);
+            updatedTasks.splice(destination.index, 0, movedTask);
+            setTasks(updatedTasks);
+        } else {
+            await handleTaskDrop(draggedTask, destination);
+        }
+    };
 
     const addTask = async () => {
-        if (!newTask.trim() || !user) return;
+        if (!newTask.trim()) return;
 
         const task = {
-            _id: uuidv4(),
             title: newTask,
-            description: "",
-            status: TASK_STATUSES.TODO,
-            userId: user.uid,
+            status: "todo",
+            userId: user?.uid,
         };
 
         try {
             const res = await axios.post("http://localhost:5000/tasks", task);
-            setTasks([...tasks, res.data]); // Use response data to ensure correct task ID
+            setTasks([...tasks, res.data]);
+            setNewTask("");
         } catch (error) {
             console.error("Failed to add task:", error);
         }
-
-        setNewTask("");
     };
 
     return (
         <div className="min-h-screen p-6 bg-gray-100">
             <h1 className="mb-6 text-2xl font-bold text-center">Task Board</h1>
-
-            {/* Add Task Input */}
             <div className="flex gap-2 mb-4">
                 <input
                     type="text"
@@ -99,8 +99,6 @@ const TaskBoard = () => {
                     Add Task
                 </button>
             </div>
-
-            {/* Drag and Drop Task Board */}
             <DragDropContext onDragEnd={onDragEnd}>
                 <div className="grid grid-cols-3 gap-6">
                     {Object.values(TASK_STATUSES).map((status) => (

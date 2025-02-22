@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import axios from "axios";
+import PropTypes from "prop-types";
 
 const TaskItem = ({ task, index, onUpdate }) => {
     const [isEditing, setIsEditing] = useState(false);
-    const [editedTask, setEditedTask] = useState({ title: task.title, description: task.description });
+    const [editedTask, setEditedTask] = useState({
+        title: task.title || "",
+        description: task.description || ""
+    });
 
     const handleEditToggle = () => {
         setIsEditing(!isEditing);
-        setEditedTask({ title: task.title, description: task.description });
+        setEditedTask({ title: task.title || "", description: task.description || "" });
     };
 
     const handleChange = (e) => {
@@ -18,11 +22,14 @@ const TaskItem = ({ task, index, onUpdate }) => {
     const handleSave = async () => {
         if (!editedTask.title.trim()) return;
         try {
-            await axios.put(`http://localhost:5000/tasks/${task._id}`, {
+            const response = await axios.put(`http://localhost:5000/tasks/${task._id}`, {
                 title: editedTask.title,
-                description: editedTask.description
+                description: editedTask.description,
+                status: task.status, 
             });
-            onUpdate(task._id, editedTask);
+
+            console.log("Updated task response:", response.data);
+            onUpdate(task._id, { ...task, ...editedTask }); 
             setIsEditing(false);
         } catch (error) {
             console.error("Failed to update task:", error);
@@ -61,12 +68,11 @@ const TaskItem = ({ task, index, onUpdate }) => {
                             </div>
                         ) : (
                             <div>
-                                <h3 className="font-semibold">{task.title}</h3>
+                                <h3 className="font-semibold">{task.title || "Untitled Task"}</h3>
                                 {task.description && <p className="text-sm text-gray-600">{task.description}</p>}
                             </div>
                         )}
                     </div>
-
                     {!isEditing && (
                         <button onClick={handleEditToggle} className="px-2 py-1 text-sm text-white bg-blue-500 rounded">
                             Edit
@@ -76,6 +82,18 @@ const TaskItem = ({ task, index, onUpdate }) => {
             )}
         </Draggable>
     );
+};
+
+// ✅ Add PropTypes validation
+TaskItem.propTypes = {
+    task: PropTypes.shape({
+        _id: PropTypes.string.isRequired,
+        title: PropTypes.string,
+        description: PropTypes.string,
+        status: PropTypes.string.isRequired,
+    }).isRequired,
+    index: PropTypes.number.isRequired,
+    onUpdate: PropTypes.func.isRequired,
 };
 
 export default TaskItem;
